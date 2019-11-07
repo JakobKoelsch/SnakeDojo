@@ -10,7 +10,7 @@ dirTransitions = {  "SS":"S", "WS":"W", "NS":"N", "ES":"E",
 EMPTY = 1
 FOOD = -1
 DEATH = 0
-SNAKE_INDEX = DEATH + 1
+SNAKE_INDEX = 2
 X = 0
 Y = 1
 
@@ -66,7 +66,7 @@ class Board:
         ret = True
         if pos[X] < 0 or pos[Y] < 0:
             ret = False
-        if pos[X] >= self.board.size or pos[X] >= self.board.size:
+        if pos[X] >= self.board[X].size or pos[Y] >= self.board[Y].size:
             ret = False
         #TODO: implement
         return ret
@@ -108,7 +108,7 @@ class Board:
                 self.food.remove(snek.getHead())
             elif coll == EMPTY:
                 pass
-            elif coll > EMPTY and coll != snek.getIndex():
+            elif (coll > EMPTY and coll != snek.getIndex()) or coll == DEATH:
                 snek.kill()
             else:
                 pass

@@ -4,4 +4,5 @@ class RandomHead:
         pass
 
     def next(self):
-        return random.choice(["L","R","S"])
+        move = random.choice(["L","R","S"])
+        return move
