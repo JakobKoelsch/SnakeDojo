@@ -7,9 +7,10 @@ dirTransitions = {  "SS":"S", "WS":"W", "NS":"N", "ES":"E",
                     "SR":"W", "WR":"N", "NR":"E", "ER":"S"  }
 
 
-EMPTY = 0
-FOOD = 1
-DEATH = 2
+EMPTY = 1
+FOOD = -1
+DEATH = 0
+SNAKE_INDEX = DEATH + 1
 X = 0
 Y = 1
 
@@ -34,9 +35,13 @@ class Game:
         while anySnakeAlive and gameWindowOpen:
             gameWindowOpen = self.g.update()
             self.board.moveSnakes()
+
+            self.board.fillBoard()
+
             anySnakeAlive = self.board.anySnakeAlive()
             self.board.keepFoodLevel(1)
             self.giveFeedback()
+        print("Longest snake reached", max([len(snek.getSnake()) for snek in self.snakes]))
 
     def giveFeedback(self):
         for snek in self.snakes:
@@ -49,22 +54,30 @@ class Game:
 
 class Board:
     def __init__(self, size):
-        self.board = np.zeros((size,size))
+        self.board = np.ones((size,size),dtype=int)
         self.snakes = []
         self.food = []
 
     def isOccupied(self, pos):
         self.fillBoard()
-        return self.board[pos[X]][pos[Y]] == EMPTY
+        return not (self.board[pos[X]][pos[Y]] == EMPTY)
+
+    def isInbounds(self, pos):
+        ret = True
+        if pos[X] < 0 or pos[Y] < 0:
+            ret = False
+        if pos[X] >= self.board.size or pos[X] >= self.board.size:
+            ret = False
+        #TODO: implement
+        return ret
 
     def spawnFood(self, n):
         spawned = 0
-        rand = np.zeros((2,1))
         while spawned < n:
             randX = random.choice(range(len(self.board)))
             randY = random.choice(range(len(self.board[0])))
             if self.board[randX, randY] == EMPTY:
-                self.board[randX, randY] = FOOD
+                self.food.append((randX, randY))
                 spawned += 1
 
     def keepFoodLevel(self, n):
@@ -90,56 +103,69 @@ class Board:
         
         for snek in self.snakes:
             coll = self.collision(snek.getHead())
-            if coll == FOOD:
+            if coll == snek.getIndex()*FOOD:
                 snek.eat()
-            elif coll == DEATH:
-                snek.kill()
+                self.food.remove(snek.getHead())
             elif coll == EMPTY:
                 pass
+            elif coll > EMPTY and coll != snek.getIndex():
+                snek.kill()
             else:
-                print("Error: Faulty board element.")
+                pass
 
     def fillBoard(self):
-        self.board = np.empty_like(self.board)
+        self.board = np.ones_like(self.board)
         for yum in self.food:
             self.board[yum[X], yum[Y]] = FOOD
         for snek in self.snakes:
-            for bodyPart in snek.getSnake():
-                self.board[bodyPart[X], bodyPart[Y]] = DEATH
+            if snek.isAlive():
+                for bodyPart in snek.getSnake():
+                    if self.isInbounds(bodyPart):
+                        self.board[bodyPart[X], bodyPart[Y]] *= snek.getIndex()
+                    else:
+                        pass
+            else:
+                pass
 
 
     def collision(self, head):
         ret = DEATH
-        if head[X] not in range(len(self.board)) or head[Y] not in range(len(self.board)):
-            ret = DEATH
-        else:
+        if self.isInbounds(head):
             ret = self.board[head[X], head[Y]]
+        else:
+            ret = DEATH
         return ret 
 
 
 
 class Snake:
     def __init__(self, pos, dir, brain):
+        global SNAKE_INDEX
         self.head = pos
         self.body = []
         self.dir = dir
         self.brain = brain
         self.alive = True
         self.fullStomach = True
+        self.index = SNAKE_INDEX
+        SNAKE_INDEX += 1
+
+    def getIndex(self):
+        return self.index
 
     def move(self, move):
         if self.alive:
             #TODO optional: add possibility of faulty behaviour (bad reflexes)
             pos = list(self.head)
-            dir = dirTransitions[self.dir+move]
+            self.dir = dirTransitions[self.dir+move]
 
-            if dir == "N":
+            if self.dir == "N":
                 pos[1] -= 1
-            elif dir == "W":
+            elif self.dir == "W":
                 pos[0] -= 1
-            elif dir == "S":
+            elif self.dir == "S":
                 pos[1] += 1
-            elif dir == "E":
+            elif self.dir == "E":
                 pos[0] += 1
             else:
                 print("Invalid dir in Snake.move()!")
