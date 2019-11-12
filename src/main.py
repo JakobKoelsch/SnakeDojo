@@ -11,7 +11,8 @@ class DummyGraphics:
 
     def setSize(self, x):
         pass
-g = DummyGraphics()
+
+g = graphics.GraphicsEngine()
 game = snake.Game(10, g)
 game.addSnake((2,2), "S", brain.RandomHead())
 # game.addSnake((2,2), "S", brain.RandomHead())

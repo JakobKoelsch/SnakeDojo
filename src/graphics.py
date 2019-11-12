@@ -1,9 +1,10 @@
 import pygame
 import os
+import time
 os.environ["SDL_VIDEODRIVER"] = "dummy"
 
-x_size = 500
-y_size = 500
+X_SIZE = 500
+Y_SIZE = 500
 
 
 class GraphicsEngine:
@@ -12,7 +13,7 @@ class GraphicsEngine:
         #self.logo = pygame.image.load("logo32x32.png")
         #pygame.display.set_icon(logo)
         pygame.display.set_caption("Snake Dojo")
-        self.screen = pygame.display.set_mode((x_size, y_size))
+        self.screen = pygame.display.set_mode((X_SIZE, Y_SIZE))
         self.running = True
         self.boardSize = 1
 
@@ -31,5 +32,7 @@ class GraphicsEngine:
                     retValue = False
 
         pygame.display.flip()
+        time.sleep(0.3)
         return retValue
+
         
